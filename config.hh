@@ -7,3 +7,9 @@
 // Server constants
 #define SV_QUEUE_CAP 3
 #define MSG_LEN 1024
+
+// Client-server message verbs
+#define NEWUSER "NEWUSER\n"
+#define BYE "BYE"
+#define LEAVEUSER "GOODBYE\n"
+#define ROOMS "OPENROOMS\n"

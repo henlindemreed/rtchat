@@ -1,6 +1,7 @@
 
 // Modules
 #include "config.hh"
+#include "util.hh"
 
 // Sockets
 #include <sys/socket.h>
@@ -8,6 +9,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 // Backend data structures
 #include <vector>
@@ -50,7 +52,7 @@ usr3a
 */
 // send these strings to connecting users deciding what room to join
 std::string room_string(std::vector<chat_room> &rooms) {
-    std::string ans = "OPENROOMS\n";
+    std::string ans = ROOMS;
     for(auto &rm : rooms) {
         ans += rm.name + "\n";
         for(auto &usr : rm.users) {
@@ -66,7 +68,7 @@ std::string room_string(std::vector<chat_room> &rooms) {
 // the old users about the new one. Then promote the new user to an old user 
 // (add it to the list of users the room keeps track of)
 void add_to_room(struct chat_room &rm, struct user_info &usr, int new_sock) {
-    const std::string new_addr_msg = "NEWUSER\n";
+    const std::string new_addr_msg = NEWUSER;
     auto old_msg = new_addr_msg + inaddr_to_string(usr.addr.sin6_addr);
     for(int i = 0; i < rm.users.size(); ++i) {
         // tell already-existing user about new guy
@@ -120,6 +122,43 @@ void handle_new_connection(int new_sock, sockaddr_in6 *new_addr,
     }
     // step 4.
     cli_socks.push_back(new_sock);
+}
+
+// If they are leaving:
+// Find the room they are in, tell everyone they're leaving.
+// remove the socket from cli_socks
+// remove from their room
+// close the room if theyre the last one
+// close the socket
+void handle_old_connection(int sock, std::vector<chat_room> &rooms, 
+                            std::vector<int> &cli_socks) {
+    char buffer[MSG_LEN] = {};
+    int valread = read(sock, buffer, MSG_LEN);
+    if(std::string(buffer) == BYE){
+        struct user_info this_guy;
+        for (auto &rm : rooms) {
+            for (int i = 0; i < rm.users.size(); ++i) {
+                if (rm.user_socks[i] == sock) {
+                    // remove me from the room
+                    this_guy = rm.users[i];
+                    remove_unordered(rm.users, i);
+                    remove_unordered(rm.user_socks, i);
+                    if (rm.users.size() == 0) {
+                        // if I'm the last person, close the room entirely
+                        rooms.erase(rm);
+                    } else {
+                        // tell everyone I left if they exist
+                        const std::string msg = LEAVEUSER + inaddr_to_string(this_guy.addr.sin6_addr);
+                        for (auto &fd: rm.user_socks) {
+                            send(fd, msg.c_str(), msg.length());
+                        }
+                    }
+                }
+            }
+        }
+        cli_socks.remove(sock);
+        close(sock);
+    }
 
 }
 
@@ -130,6 +169,7 @@ int main() {
     socklen_t addr_len = sizeof(addr);
     std::vector<int> cli_socks{0};
     std::vector<chat_room> rooms{0};
+    fd_set readfds;
 
     // Create connection-accepting socket
     if (master_sock = socket(AF_INET6, SOCK_STREAM, 0) == 0){
@@ -153,9 +193,31 @@ int main() {
 
     // Main loop
     while(1) {
-        // Accept incoming connection
-        int new_sock = accept(master_sock, (struct sockaddr *)&new_addr, &addr_len);
-        handle_new_connection(new_sock, new_addr, rooms, cli_socks);
+        // reset fdset
+        FD_ZERO(&readfds);
+        FD_SET(master_sock, &readfds);
+        int maxfd = master_sock;
+        for (auto &fd : cli_socks){
+            FD_SET(fd, &readfds);
+            maxfd = (fd > maxfd) ? fd : maxfd;
+        }
+        
+        // wait for communication
+        select(maxfd + 1, &readfds, NULL, NULL, NULL);
+
+        // Accept incoming connection if its to master socket
+        if(FD_ISSET(master_sock, &readfds)){
+            int new_sock = accept(master_sock, (struct sockaddr *)&new_addr, &addr_len);
+            handle_new_connection(new_sock, new_addr, rooms, cli_socks);
+            continue;
+        }
+        // check all other client sockets
+        for (auto &fd: cli_socks) {
+            if (FD_ISSET(fd, &readfds)) {
+                handle_old_connection(fd, rooms, cli_socks);
+                break;
+            }
+        }
 
     }
 
