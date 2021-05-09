@@ -43,13 +43,14 @@ namespace rtclient {
             };
             std::vector<msg_state> msgs;    // msgs from peers
             std::string my_msg;             // msg from me
+            std::string my_name;
             std::mutex mtx;                // since multithreading
     };
 
     // A thread-safe (hopefully) queue of letters to send
     struct to_send {
         std::deque<char> letters;
-        std::mutex lock;
+        std::mutex mtx;
     };
 }
 

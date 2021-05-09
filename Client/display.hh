@@ -3,7 +3,7 @@
 namespace display {
     // overwrites a message onto the screen. This may be the same message.
     // call this one for sync messages
-    void write(rtclient::window &window, std::string &msg, rtclient::peer owner);
+    void write(rtclient::window &window, std::string msg, rtclient::peer owner);
 
     // writes an extra character to the end of owner's message
     // use this for one-char packets
@@ -20,5 +20,9 @@ namespace display {
     void remove(rtclient::window &window, rtclient::peer old_peer);
 
     // writes keypresses from user to both the window and the to_send queue
-    void listen_for_keys(rtclient::window &window, rtclient::to_send &to_send);
+    void listen_for_keys(rtclient::window &window, rtclient::peer_list &peers, std::shared_mutex &peer_mtx, 
+                        rtclient::sockfd out_sock, bool &stop);
+
+    // setup the main window
+    void init(rtclient::window &window, rtclient::peer_list &peers);
 }
