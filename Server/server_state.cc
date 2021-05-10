@@ -3,7 +3,7 @@
 
 // Constructor
 sstate::sstate() :
- rooms{rmls(0)}, next_id{0}, mtx{}
+ rooms{rmls(0)}, next_id{1}, mtx{}
 {}
 
 // Destructor

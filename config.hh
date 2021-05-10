@@ -7,7 +7,7 @@
 
 // Server constants
 #define SV_QUEUE_CAP 3
-#define MSG_LEN 1024
+#define MSG_LEN 512
 
 
 // Client-server message verbs

@@ -73,7 +73,7 @@ void display::listen_for_keys(rtclient::window &window, rtclient::peer_list &pee
         if (c == KEY_BACKSPACE || c == KEY_DC || c == 127 || c == 7 || c == 8) {
             {   // Scope for winlock
                 std::lock_guard<std::mutex> winlock(window.mtx);
-                mvdelch(0, window.my_msg.length() - 1);
+                mvdelch(1, window.my_msg.length() - 1);
                 window.my_msg.pop_back();
             }{  // Scope for to_send lock
                 std::string msg = construct_msg(std::string(1,DELCH), CH, window.my_name);
@@ -82,7 +82,7 @@ void display::listen_for_keys(rtclient::window &window, rtclient::peer_list &pee
         } else {
             {   // Scope for winlock
                 std::lock_guard<std::mutex> winlock(window.mtx);
-                mvaddch(0, window.my_msg.length(), c);
+                mvaddch(1, window.my_msg.length(), c);
                 window.my_msg += c;
             }{  // Scope for to_send lock
                 std::string msg = construct_msg(std::string(1,c), CH, window.my_name);

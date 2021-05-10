@@ -28,8 +28,10 @@ rtclient::sockfd connect_to_server(std::string ip){
     server_addr.sin6_family = AF_INET6;
     server_addr.sin6_port = htons(SERVER_PORT);
     inet_pton(AF_INET6, ip.c_str(), &server_addr.sin6_addr);
-    mvprintw(1,0, ">>>%d", connect(server_socket, (sockaddr *)&server_addr, sizeof(server_addr)));
-    sleep(2);
+    mvprintw(1,0, ">>>");
+    printw("%d", connect(server_socket, (sockaddr *)&server_addr, sizeof(server_addr)));
+    refresh();
+    sleep(1);
     return server_socket;
 }
 
@@ -41,7 +43,9 @@ void say_hi(rtclient::sockfd sock, std::string &my_name){
     char name[80];
     getstr(name);
     my_name = name;
-    mvprintw(10,0,"%d",send(sock, name, strlen(name), 0));
+    mvprintw(2,0,">>>%d",send(sock, name, strlen(name), 0));
+    refresh();
+    sleep(1);
 }
 
 void choose_room(rtclient::sockfd sock) {
@@ -63,7 +67,7 @@ void choose_room(rtclient::sockfd sock) {
     std::vector<std::string> ids(0);
     while(next_nl != std::string::npos){
         move(row, 0);
-        printw("[%d] ");
+        printw("[%d] ", row);
         std::string thisln = ls.substr(0,next_nl);
         ls = ls.substr(next_nl + 1);
         size_t next_sep = thisln.find(SEP);
@@ -86,7 +90,12 @@ void choose_room(rtclient::sockfd sock) {
     // get selection and send it back to server
     char selection[5];
     getstr(selection);
-    std::string room_id = ids[atoi(selection)];
+    std::string room_id;
+    if(atoi(selection) == 0){
+        room_id = "0";
+    } else {
+        room_id = ids[atoi(selection)];
+    }
     send(sock, room_id.c_str(), room_id.length(), 0);
 }
 
