@@ -84,3 +84,13 @@ I hardly tested this at all. And the testing that I did do was either incredibly
  5. Links to rooms instead of picking from a list
 
 Idk, there's a lot that could be done to this.
+
+### Misc
+
+I chose to write this in C/C++ because I hate myself. That, and since this is more akin to a videocall app due to its real-time-ness, I was trying to figure out why anyone would ever use this over skype, say, and I came up with videocalls being hard on battery, so I would want this to be lightweight, which means I should do it relatively low-level.
+
+In terms of grading, I would not give this more than 40/100... I did implement one of the challenge goals (group functionality) but my program is broken so I should immediately lose any points I would gain. Could I get twice or thre times as many points by taking the final? Almost certainly. Am I going to? Nope. I'm a little fried and this was more fun anyway and I think I learned from this better than I would from a test, and also, as a Reedie, it is my duty to not really care about my grades that much as long as I have learned.
+
+Also, I started coding in earnest on saturday, which was REALLY stupid; you'd think I would have learned from all the 221 homeworks I've graded where students did exactly that but I guess not..
+
+Cheers!
