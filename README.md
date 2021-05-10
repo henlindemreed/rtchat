@@ -1,4 +1,6 @@
 # rtchat
+### Henry Lindeman
+
 real-time chat app
 
 compile simply with 
